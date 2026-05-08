@@ -50,6 +50,8 @@ class Castep(cmake.CMakePackage, makefile.MakefilePackage):
     with when("build_system=makefile"):
         depends_on("gmake@3.82:", when="@21:21", type="build")
         depends_on("gmake@4.2:", when="@22:", type="build")
+        requires("%gcc@9:", when="@25.12:")
+        requires("%gcc@4.9.1:", when="@21.11:")
 
     with when("build_system=cmake"):
         cmake.generator("ninja", "make", default="make")
@@ -90,6 +92,7 @@ class Castep(cmake.CMakePackage, makefile.MakefilePackage):
     depends_on("fortran", type="build")
     depends_on("awk@3:", type="build")
     extends("python", type=("build", "run"))
+    extends("python@:3.11", type=("build", "run"), when="@:22")
     depends_on("py-pip", type="build")
     depends_on("py-numpy", type=("build", "run"))
     depends_on("py-scipy", type=("build", "run"))
@@ -99,7 +102,7 @@ class Castep(cmake.CMakePackage, makefile.MakefilePackage):
     depends_on("blas")
     depends_on("lapack")
     depends_on("fftw-api@3")
-
+    
     # MPI must have fortran bindings
     with when("+mpi"):
         depends_on("mpi", type=("build", "link", "run"))
@@ -314,7 +317,7 @@ class MakefileBuilder(makefile.MakefileBuilder):
 
     def edit(self, pkg, spec, prefix):
         if spec.satisfies("%gcc"):
-            if self.spec.satisfies("@21:21"):
+            if self.spec.satisfies("@21:"):
                 if spec.satisfies("%gcc@10:"):
                     platfile = FileFilter("obj/platforms/linux_x86_64_gfortran10.mk")
                 else:
@@ -362,7 +365,7 @@ class MakefileBuilder(makefile.MakefileBuilder):
         if spec.satisfies("target=x86_64:"):
             if spec.satisfies("platform=linux"):
                 if spec.satisfies("%gcc"):
-                    if self.spec.satisfies("@21:21") and spec.satisfies("%gcc@10:"):
+                    if self.spec.satisfies("@21:") and spec.satisfies("%gcc@10:"):
                         targetlist.append("ARCH=linux_x86_64_gfortran10")
                     elif self.spec.satisfies("@19:19") and spec.satisfies("%gcc@9:"):
                         targetlist.append("ARCH=linux_x86_64_gfortran9.0")
